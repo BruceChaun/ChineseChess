@@ -26,6 +26,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	private boolean redTurn = true; // red goes first
 	int x = 0, y = 0;                                        // capture the coordinate of mouse clicking
 	int lastRowPosition, lastColPosition;
+	Colors winner;
 	
 	@Override
 	public void paintComponent(Graphics g) {
@@ -33,13 +34,22 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
 		
-		int[] pos = coord2pos(x, y);
-		int row = pos[0], col = pos[1];
-		updateLastPosition(row, col, g);
+		if (winner == null) {
+			int[] pos = coord2pos(x, y);
+			int row = pos[0], col = pos[1];
+			updateLastPosition(row, col, g);
+		}
 		drawBoard(g);
 		drawChess(g);
 		if (lastRowPosition != -1 && lastColPosition != -1)
 			drawCursor(lastRowPosition, lastColPosition, g);
+		
+		if (winner != null) {
+			String s = this.winner + "  WINS!!!";
+			g.setFont(new Font("TimesRoman", Font.PLAIN, 75));
+			g.setColor(Color.RED);
+			g.drawString(s, LEFT_MARGIN,  TOP_MARGIN + GAP * ROW / 2);
+		}
 	}
 	
 	public Board() {
@@ -131,6 +141,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 		this.pieces = new Piece[ROW][COLUMN];
 		this.lastRowPosition = -1;
 		this.lastColPosition = -1;
+		this.winner = null;
 		
 		/*
 		 *   black player
@@ -275,6 +286,10 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 			Colors to = pieces[row][col].getColor();
 			if (!from.equals(to)) {
 				// eat your enemy
+				if (pieces[row][col].getName().equals(PieceName.JIANG)) {
+					winner = pieces[lastRowPosition][lastColPosition].getColor();
+				}
+				
 				pieces[row][col].eaten();
 				pieces[row][col] = pieces[lastRowPosition][lastColPosition];
 				pieces[lastRowPosition][lastColPosition] = null;
