@@ -146,42 +146,42 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 		/*
 		 *   black player
 		 */
-		pieces[0][0] = new Ju(Colors.BLACK, 0, 0);
-		pieces[0][1] = new Ma(Colors.BLACK, 0, 1);
-		pieces[0][2] = new Xiang(Colors.BLACK, 0, 2);
-		pieces[0][3] = new Shi(Colors.BLACK, 0, 3);
-		pieces[0][4] = new Jiang(Colors.BLACK, 0, 4);
-		pieces[0][5] = new Shi(Colors.BLACK, 0, 5);
-		pieces[0][6] = new Xiang(Colors.BLACK, 0, 6);
-		pieces[0][7] = new Ma(Colors.BLACK, 0, 7);
-		pieces[0][8] = new Ju(Colors.BLACK, 0, 8);
-		pieces[2][1] = new Pao(Colors.BLACK, 2, 1);
-		pieces[2][7] = new Pao(Colors.BLACK, 2, 7);
-		pieces[3][0] = new Bing(Colors.BLACK, 3, 0);
-		pieces[3][2] = new Bing(Colors.BLACK, 3, 2);
-		pieces[3][4] = new Bing(Colors.BLACK, 3, 4);
-		pieces[3][6] = new Bing(Colors.BLACK, 3, 6);
-		pieces[3][8] = new Bing(Colors.BLACK, 3, 8);
+		pieces[0][0] = new Ju(Colors.BLACK);
+		pieces[0][1] = new Ma(Colors.BLACK);
+		pieces[0][2] = new Xiang(Colors.BLACK);
+		pieces[0][3] = new Shi(Colors.BLACK);
+		pieces[0][4] = new Jiang(Colors.BLACK);
+		pieces[0][5] = new Shi(Colors.BLACK);
+		pieces[0][6] = new Xiang(Colors.BLACK);
+		pieces[0][7] = new Ma(Colors.BLACK);
+		pieces[0][8] = new Ju(Colors.BLACK);
+		pieces[2][1] = new Pao(Colors.BLACK);
+		pieces[2][7] = new Pao(Colors.BLACK);
+		pieces[3][0] = new Bing(Colors.BLACK);
+		pieces[3][2] = new Bing(Colors.BLACK);
+		pieces[3][4] = new Bing(Colors.BLACK);
+		pieces[3][6] = new Bing(Colors.BLACK);
+		pieces[3][8] = new Bing(Colors.BLACK);
 		
 		/*
 		 *   red player
 		 */
-		pieces[9][0] = new Ju(Colors.RED, 9, 0);
-		pieces[9][1] = new Ma(Colors.RED, 9, 1);
-		pieces[9][2] = new Xiang(Colors.RED, 9, 2);
-		pieces[9][3] = new Shi(Colors.RED, 9, 3);
-		pieces[9][4] = new Jiang(Colors.RED, 9, 4);
-		pieces[9][5] = new Shi(Colors.RED, 9, 5);
-		pieces[9][6] = new Xiang(Colors.RED, 9, 6);
-		pieces[9][7] = new Ma(Colors.RED, 9, 7);
-		pieces[9][8] = new Ju(Colors.RED, 9, 8);
-		pieces[7][1] = new Pao(Colors.RED, 7, 1);
-		pieces[7][7] = new Pao(Colors.RED, 7, 7);
-		pieces[6][0] = new Bing(Colors.RED, 6, 0);
-		pieces[6][2] = new Bing(Colors.RED, 6, 2);
-		pieces[6][4] = new Bing(Colors.RED, 6, 4);
-		pieces[6][6] = new Bing(Colors.RED, 6, 6);
-		pieces[6][8] = new Bing(Colors.RED, 6, 8);
+		pieces[9][0] = new Ju(Colors.RED);
+		pieces[9][1] = new Ma(Colors.RED);
+		pieces[9][2] = new Xiang(Colors.RED);
+		pieces[9][3] = new Shi(Colors.RED);
+		pieces[9][4] = new Jiang(Colors.RED);
+		pieces[9][5] = new Shi(Colors.RED);
+		pieces[9][6] = new Xiang(Colors.RED);
+		pieces[9][7] = new Ma(Colors.RED);
+		pieces[9][8] = new Ju(Colors.RED);
+		pieces[7][1] = new Pao(Colors.RED);
+		pieces[7][7] = new Pao(Colors.RED);
+		pieces[6][0] = new Bing(Colors.RED);
+		pieces[6][2] = new Bing(Colors.RED);
+		pieces[6][4] = new Bing(Colors.RED);
+		pieces[6][6] = new Bing(Colors.RED);
+		pieces[6][8] = new Bing(Colors.RED);
 	}
 	
 	private void drawChess(Graphics g) {

@@ -3,8 +3,8 @@ package pieces;
 import constants.*;
 
 public class Xiang extends Piece{
-	public Xiang(Colors color, int row, int col) {
-		super(color, row, col);
+	public Xiang(Colors color) {
+		super(color);
 		
 		name = PieceName.XIANG;
 		if (color.equals(Colors.BLACK))

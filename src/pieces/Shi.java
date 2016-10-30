@@ -3,8 +3,8 @@ package pieces;
 import constants.*;
 
 public class Shi extends Piece {
-	public Shi(Colors color, int row, int col) {
-		super(color, row, col);
+	public Shi(Colors color) {
+		super(color);
 		
 		name = PieceName.SHI;
 		if (color.equals(Colors.BLACK))

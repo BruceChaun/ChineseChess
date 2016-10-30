@@ -3,8 +3,8 @@ package pieces;
 import constants.*;
 
 public class Ma extends Piece {
-	public Ma(Colors color, int row, int col) {
-		super(color, row, col);
+	public Ma(Colors color) {
+		super(color);
 		
 		name = PieceName.MA;
 		if (color.equals(Colors.BLACK))

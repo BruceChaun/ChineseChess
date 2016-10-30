@@ -4,8 +4,8 @@ import constants.*;
 import ui.Board;
 
 public class Bing  extends Piece {
-	public Bing(Colors color, int row, int col) {
-		super(color, row, col);
+	public Bing(Colors color) {
+		super(color);
 		
 		name = PieceName.BING;
 		if (color.equals(Colors.BLACK))
@@ -17,10 +17,10 @@ public class Bing  extends Piece {
 	/*
 	 *   Set the convention that the red is at the lower part of the board
 	 */
-	public boolean isCrossRiver() {
+	public boolean isCrossRiver(int row) {
 		if (color.equals(Colors.BLACK))
-			return rowPosition >= Board.ROW / 2;
+			return row >= Board.ROW / 2;
 		else 
-			return rowPosition < Board.ROW / 2;
+			return row < Board.ROW / 2;
 	}
 }

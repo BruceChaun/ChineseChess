@@ -3,8 +3,8 @@ package pieces;
 import constants.*;
 
 public class Ju extends Piece {
-	public Ju(Colors color, int row, int col) {
-		super(color, row, col);
+	public Ju(Colors color) {
+		super(color);
 		
 		name = PieceName.JU;
 		if (color.equals(Colors.BLACK))

@@ -6,14 +6,12 @@ public abstract class Piece {
 	protected PieceName name;
 	protected String  imageURL;
 	protected Colors color;
-	protected int rowPosition;
-	protected int colPosition;
+//	protected int rowPosition;
+//	protected int colPosition;
 	protected boolean isEaten;
 	
-	public Piece(Colors color, int row, int col) {
+	public Piece(Colors color) {
 		this.color = color;
-		this.rowPosition = row;
-		this.colPosition = col;
 		this.isEaten = false;
 	}
 	
