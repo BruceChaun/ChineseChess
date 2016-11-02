@@ -5,3 +5,7 @@
 * [Rich Stutton](https://webdocs.cs.ualberta.ca/~sutton/book/ebook/the-book.html)
 
 * [Understanding LSTM networks](http://colah.github.io/posts/2015-08-Understanding-LSTMs/)
+
+* [Predicting Moves in Chess using Convolutional Neural Networks](http://cs231n.stanford.edu/reports/ConvChess.pdf)
+
+* [Giraffe: Using Deep Reinforcement Learning to Play Chess](https://arxiv.org/pdf/1509.01549v2.pdf)
