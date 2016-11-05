@@ -1,6 +1,10 @@
 package pieces;
 
-import constants.*;
+import java.util.List;
+
+import constants.Colors;
+import constants.PieceName;
+import game.BoardPosition;
 
 public abstract class Piece {
 	protected PieceName name;
@@ -30,4 +34,6 @@ public abstract class Piece {
 	public void eaten() {
 		this.isEaten = true;
 	}
+	
+	abstract public List<BoardPosition> getLegalMoves(Piece[][] board, BoardPosition now);
 }
