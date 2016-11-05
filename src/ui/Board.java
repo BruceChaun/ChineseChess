@@ -46,11 +46,24 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 			g.setColor(Color.RED);
 			g.drawString(s, LEFT_MARGIN,  TOP_MARGIN + GAP * Game.ROW / 2);
 		}
+		
+		// show whose turn
+		int yPos = 0;
+		if (game.isRedTurn()) {
+			g.setColor(Color.RED);
+			yPos = TOP_MARGIN + GAP * (Game.COLUMN-2);
+		} else {
+			g.setColor(Color.BLACK);
+			yPos = TOP_MARGIN + GAP * 2;
+		}
+		
+		g.fillRect(LEFT_MARGIN - GAP*3/2, yPos, GAP / 2, GAP / 2);
 	}
 	
 	public Board() {
 		this.game = new Game();
-		game.initBoard();
+		String record = "262512227747604219076364796770628979807079751002091900010605013107155041150322216665646575656254394831356563726269873525474362676367544667374627171270731222734319172535172735372737210105042324371701030403";
+		game.initBoard(record);
 		lastRowPosition = -1; 
 		lastColPosition = -1;
 	}

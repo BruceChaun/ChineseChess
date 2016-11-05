@@ -110,6 +110,16 @@ public class Game {
 		pieces[6][8] = new Bing(Colors.RED);
 	}
 
+	public void initBoard(String record) {
+		this.initBoard();
+		this.simulate(record);
+	}
+	
+	public void initBoard(String record, int steps) {
+		this.initBoard();
+		this.simulate(record, steps);
+	}
+	
 	/*
 	 *   check the move of the second stage, move if legal, 
 	 *   otherwise do nothing 
@@ -161,5 +171,37 @@ public class Game {
 			if (to.equals(pos)) return true;
 		}
 		return false;
+	}
+	
+	/*
+	 * simulate the chess playing process, according to the chess record
+	 * 
+	 * parameters
+	 * @record is a string of chess record, e.g. "26251222174772427967.....", 
+	 * where four digits represent a move and eight digits represent a round
+	 * 
+	 * @ steps is the number of steps (suppose four digits as a step). If this 
+	 * argument is missing, simulate till the end of the chess record
+	 */
+	public void simulate(String record, int steps) {
+		int numMoves = record.length() / 4;
+		if (steps >= 0) numMoves = steps;
+		
+		for (int i = 0; i < numMoves; i++) {
+			int start = i * 4;
+			BoardPosition from = new BoardPosition(
+					Integer.parseInt(record.substring(start+1, start+2)), Integer.parseInt(record.substring(start, start+1)));
+			BoardPosition to = new BoardPosition(
+					Integer.parseInt(record.substring(start+3, start+4)), Integer.parseInt(record.substring(start+2, start+3)));
+			this.movePiece(from, to);
+		}
+		
+		// reset turn
+		if (numMoves % 2 == 1)
+			this.redTurn = false;
+	}
+	
+	public void simulate(String record) {
+		this.simulate(record, -1);
 	}
 }
