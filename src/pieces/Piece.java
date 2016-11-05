@@ -35,5 +35,9 @@ public abstract class Piece {
 		this.isEaten = true;
 	}
 	
+	/*
+	 * return all the legal moves of the piece at position now 
+	 * based on current position @board
+	 */
 	abstract public List<BoardPosition> getLegalMoves(Piece[][] board, BoardPosition now);
 }

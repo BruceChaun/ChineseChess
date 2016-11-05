@@ -21,22 +21,39 @@ public class Game {
 	public static final int ROW = 10;
 	public static final int COLUMN = 9;
 	
+	/*
+	 * get the whole chess board position
+	 */
 	public Piece[][] getPieces() {
 		return pieces;
 	}
 	
+	/*
+	 * get a specific chess piece at position (@row, @col)
+	 */
 	public Piece getPiece(int row, int col) {
 		return pieces[row][col];
 	}
 	
+	/*
+	 * return if the next move is red turn or not
+	 */
 	public boolean isRedTurn() {
 		return redTurn;
 	}
 	
+	/*
+	 * change turn after each move
+	 */
 	public void changeTurn() {
 		redTurn = !redTurn;
 	}
 
+	/*
+	 * get winner of current chess position
+	 * 
+	 * null winner means no checkmate
+	 */
 	public Colors getWinner() {
 		return winner;
 	}
@@ -134,6 +151,9 @@ public class Game {
 		}
 	}
 
+	/*
+	 * check move (@from, @to) is legal or not
+	 */
 	private boolean isLegalMove(BoardPosition from, BoardPosition to) {
 		int row = from.Row(), col = from.Col();
 		List<BoardPosition> allMoves = pieces[row][col].getLegalMoves(pieces, from);
