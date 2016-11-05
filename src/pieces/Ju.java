@@ -66,7 +66,7 @@ public class Ju extends Piece {
 				break;
 			}
 		}
-		System.out.println(moves.size());
+		
 		return moves;
 	}
 
