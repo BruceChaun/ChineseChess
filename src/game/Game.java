@@ -4,14 +4,7 @@ import java.util.List;
 
 import constants.Colors;
 import constants.PieceName;
-import pieces.Bing;
-import pieces.Jiang;
-import pieces.Ju;
-import pieces.Ma;
-import pieces.Pao;
-import pieces.Piece;
-import pieces.Shi;
-import pieces.Xiang;
+import pieces.*;
 
 public class Game {
 	private Piece[][] pieces;
@@ -33,6 +26,20 @@ public class Game {
 	 */
 	public Piece getPiece(int row, int col) {
 		return pieces[row][col];
+	}
+	
+	/*
+	 * get a specific piece position by name and color
+	 */
+	public BoardPosition getPiecePosition(Colors color, PieceName name) {
+		for (int i = 0; i < ROW; i++) {
+			for (int j = 0; j < COLUMN; j++) {
+				Piece p = pieces[i][j];
+				if (p != null && p.getColor().equals(color) && p.getName().equals(name))
+					return new BoardPosition(i, j);
+			}
+		}
+		return null;
 	}
 	
 	/*
@@ -166,11 +173,44 @@ public class Game {
 	 */
 	private boolean isLegalMove(BoardPosition from, BoardPosition to) {
 		int row = from.Row(), col = from.Col();
-		List<BoardPosition> allMoves = pieces[row][col].getLegalMoves(pieces, from);
+		int toRow = to.Row(), toCol = to.Col();
+		Piece pieceToMove = pieces[row][col];
+		List<BoardPosition> allMoves = pieceToMove.getLegalMoves(pieces, from);
+		
+		BoardPosition blackJiang = getPiecePosition(Colors.BLACK, PieceName.JIANG);
+		BoardPosition redJiang = getPiecePosition(Colors.RED, PieceName.JIANG);
+		BoardPosition OpponentJiang = blackJiang;
+		if (pieceToMove.getColor().equals(Colors.BLACK)) 
+			OpponentJiang = redJiang;
+		
+		if (pieceToMove.getName().equals(PieceName.JIANG)) {
+			if (toCol ==  OpponentJiang.Col() && 
+					numberOfPieces(toCol, toRow, OpponentJiang.Row()) == 0) 
+				return false;
+		} else if (blackJiang.Col() == redJiang.Col() && col == redJiang.Col()) {
+			if (numberOfPieces(col, blackJiang.Row(), redJiang.Row()) == 1 && toCol != col)
+				return false;
+		}
+		
 		for (BoardPosition pos : allMoves) {
 			if (to.equals(pos)) return true;
 		}
 		return false;
+	}
+	
+	/*
+	 * check how many pieces are in column @col and between 
+	 * @row1 and @row2, both exclusive
+	 */
+	private int numberOfPieces(int col, int row1, int row2) {
+		if (row1 == row2) return 0;
+		if (row1 > row2) return numberOfPieces(col, row2, row1);
+		
+		int num = 0;
+		for (int r = row1+1; r < row2; r++) {
+			if (pieces[r][col] != null) num++;
+		}
+		return num;
 	}
 	
 	/*
