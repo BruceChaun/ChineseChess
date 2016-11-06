@@ -10,6 +10,7 @@ import game.Game;
 public class Xiang extends Piece{
 	public Xiang(Colors color) {
 		super(color);
+		this.rank = 2;
 		
 		name = PieceName.XIANG;
 		if (color.equals(Colors.BLACK))

@@ -10,6 +10,7 @@ import game.Game;
 public class Ju extends Piece {
 	public Ju(Colors color) {
 		super(color);
+		this.rank = 9;
 		
 		name = PieceName.JU;
 		if (color.equals(Colors.BLACK))

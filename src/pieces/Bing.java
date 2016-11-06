@@ -11,6 +11,7 @@ import ui.Board;
 public class Bing  extends Piece {
 	public Bing(Colors color) {
 		super(color);
+		this.rank = 1;
 		
 		name = PieceName.BING;
 		if (color.equals(Colors.BLACK))
@@ -46,6 +47,7 @@ public class Bing  extends Piece {
 			// can go left or right if cross river
 			moves.add(new BoardPosition(row, col-1));
 			moves.add(new BoardPosition(row, col+1));
+			this.rank = 2;
 		}
 			
 		// check each possible move and remove it if illegal

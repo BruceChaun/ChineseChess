@@ -10,6 +10,7 @@ public abstract class Piece {
 	protected PieceName name;
 	protected String  imageURL;
 	protected Colors color;
+	protected int rank;
 //	protected int rowPosition;
 //	protected int colPosition;
 	protected boolean isEaten;
@@ -29,6 +30,20 @@ public abstract class Piece {
 	
 	public Colors getColor() {
 		return this.color;
+	}
+	
+	/*
+	 * Caution: only used in defend map
+	 */
+	public void changeColor() {
+		if (this.color.equals(Colors.BLACK))
+			this.color = Colors.RED;
+		else
+			this.color = Colors.BLACK;
+	}
+	
+	public int getRank() {
+		return this.rank;
 	}
 	
 	public void eaten() {

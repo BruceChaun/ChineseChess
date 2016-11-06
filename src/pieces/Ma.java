@@ -10,6 +10,7 @@ import game.Game;
 public class Ma extends Piece {
 	public Ma(Colors color) {
 		super(color);
+		this.rank = 4;
 		
 		name = PieceName.MA;
 		if (color.equals(Colors.BLACK))

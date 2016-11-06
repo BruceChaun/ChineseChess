@@ -10,6 +10,7 @@ import game.Game;
 public class Shi extends Piece {
 	public Shi(Colors color) {
 		super(color);
+		this.rank = 2;
 		
 		name = PieceName.SHI;
 		if (color.equals(Colors.BLACK))

@@ -10,6 +10,7 @@ import game.Game;
 public class Pao extends Piece {
 	public Pao(Colors color) {
 		super(color);
+		this.rank = 4;
 		
 		name = PieceName.PAO;
 		if (color.equals(Colors.BLACK))
