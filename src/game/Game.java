@@ -2,8 +2,7 @@ package game;
 
 import java.util.List;
 
-import constants.Colors;
-import constants.PieceName;
+import constants.*;
 import pieces.*;
 
 public class Game {
@@ -63,6 +62,35 @@ public class Game {
 	 */
 	public Colors getWinner() {
 		return winner;
+	}
+	
+	/*
+	 * get a copy of current board
+	 */
+	public Game copy() {
+		Game g = new Game();
+		g.setPieces(pieces);
+		g.setRedTurn(redTurn);
+		g.setWinner(winner);
+		return g;
+	}
+	
+	private void setPieces(Piece[][] pieces) {
+		this.pieces = new Piece[ROW][COLUMN];
+		// deep copy
+		for (int i = 0; i < ROW; i++) {
+			for (int j = 0; j < COLUMN; j++) {
+				this.pieces[i][j] = pieces[i][j]; 
+			}
+		}
+	}
+	
+	private void setRedTurn(boolean redTurn) {
+		this.redTurn = redTurn;
+	}
+	
+	private void setWinner(Colors winner) {
+		this.winner = winner;
 	}
 
 	/*
@@ -133,7 +161,7 @@ public class Game {
 	 *   (or you can reset last position)
 	 *   
 	 *   parameters:
-	 *   @from and @to: move from @from to @to 
+	 *   @from and @to: move from @from to @to
 	 */
 	public boolean movePiece(BoardPosition from, BoardPosition to) {
 		int row = to.Row(), col = to.Col();
@@ -152,7 +180,10 @@ public class Game {
 			Colors colorInFrom = pieces[lastRow][lastCol].getColor();
 			Colors colorInTo = pieces[row][col].getColor();
 			
-			if (colorInFrom.equals(colorInTo)) return false;
+			// collision, same color
+			if (colorInFrom.equals(colorInTo)) {
+				return false;
+			}
 			else {
 				// eat your enemy
 				if (pieces[row][col].getName().equals(PieceName.JIANG)) {
