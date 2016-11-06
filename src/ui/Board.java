@@ -3,12 +3,11 @@ package ui;
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.*;
+import algo.Feature;
 import java.awt.event.*;
-
 import pieces.*;
 import constants.*;
-import game.BoardPosition;
-import game.Game;
+import game.*;
 
 public class Board extends JPanel implements MouseListener, MouseMotionListener {
 	/*
@@ -63,7 +62,8 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	public Board() {
 		this.game = new Game();
 		String record = "262512227747604219076364796770628979807079751002091900010605013107155041150322216665646575656254394831356563726269873525474362676367544667374627171270731222734319172535172735372737210105042324371701030403";
-		game.initBoard(record);
+		this.game.initBoard(record);
+		Feature.featureExtractor(game);
 		lastRowPosition = -1; 
 		lastColPosition = -1;
 	}
