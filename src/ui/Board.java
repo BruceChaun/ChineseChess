@@ -3,7 +3,6 @@ package ui;
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.*;
-import algo.Feature;
 import java.awt.event.*;
 import pieces.*;
 import constants.*;
@@ -21,8 +20,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
      *   private variables to maintain the board information
      */
     private Game game;
-    int x = 0, y = 0;                                        // capture the coordinate of mouse clicking
-    int lastRowPosition, lastColPosition;
+    private static Recorder recorder;
+    private int x = 0, y = 0;                                        // capture the coordinate of mouse clicking
+    private int lastRowPosition, lastColPosition;
 
     @Override
     public void paintComponent(Graphics g) {
@@ -60,12 +60,15 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     public Board() {
+        this.recorder = new Recorder();
         this.game = new Game();
-        String record = "262512227747604219076364796770628979807079751002091900010605013107155041150322216665646575656254394831356563726269873525474362676367544667374627171270731222734319172535172735372737210105042324371701030403";
-        this.game.initBoard(record);
-        Feature.featureExtractor(game);
+        this.game.initBoard();
         lastRowPosition = -1; 
         lastColPosition = -1;
+    }
+    
+    public static  String outputGameRecord() {
+        return recorder.output();
     }
 
     /*
@@ -206,6 +209,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                     BoardPosition last = new BoardPosition(lastRowPosition, lastColPosition);
                     boolean success = game.movePiece(last, bp);
                     if (success) {
+                        this.recorder.record(last, bp);
                         lastRowPosition = -1;
                         lastColPosition = -1;
                     }
