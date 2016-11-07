@@ -1,8 +1,7 @@
 import java.io.*;
 import java.util.List;
 
-import algo.Feature;
-import algo.naive.NegativeData;
+import algo.*;
 import game.Game;
 import util.FileHandler;
 
