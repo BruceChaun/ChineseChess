@@ -313,8 +313,6 @@ public class NN {
      * estimated from TD
      */
     private void backpropagation(List<List<Double>> features, double pred, double error) {
-        if (error > 1) error = 1;
-        else if (error < -1) error = -1;
         double p = error * this.dtanh(pred);
         
         this.outputWeightGrad(p);
