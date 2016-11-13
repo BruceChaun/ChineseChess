@@ -47,6 +47,10 @@ public class Game {
     public boolean isRedTurn() {
         return redTurn;
     }
+    
+    public Colors getTurn() {
+        return this.redTurn ? Colors.RED : Colors.BLACK;
+    }
 
     /*
      * change turn after each move
@@ -163,39 +167,45 @@ public class Game {
      *   
      *   parameters:
      *   @from and @to: move from @from to @to
+     *   
+     *   @return 
+     *   the rank score of the eaten piece,
+     *   0 if not eat any piece
+     *   -1 if illegal move
      */
-    public boolean movePiece(BoardPosition from, BoardPosition to) {
+    public int movePiece(BoardPosition from, BoardPosition to) {
         int row = to.Row(), col = to.Col();
         int lastRow = from.Row(), lastCol = from.Col();
 
         // check if legal move
-        if (!isLegalMove(from, to)) return false;
+        if (!isLegalMove(from, to)) return -1;
 
         // can move if there is no piece in that place
         if (pieces[row][col] == null) {
             pieces[row][col] = pieces[lastRow][lastCol];
             pieces[lastRow][lastCol] = null;
             this.changeTurn();
-            return true;
+            return 0;
         } else {
             Colors colorInFrom = pieces[lastRow][lastCol].getColor();
             Colors colorInTo = pieces[row][col].getColor();
 
             // collision, same color
             if (colorInFrom.equals(colorInTo)) {
-                return false;
+                return -1;
             }
             else {
                 // eat your enemy
                 if (pieces[row][col].getName().equals(PieceName.JIANG)) {
                     this.winner = pieces[lastRow][lastCol].getColor();
                 }
+                int rank = pieces[row][col].getRank();
 
                 pieces[row][col].eaten();
                 pieces[row][col] = pieces[lastRow][lastCol];
                 pieces[lastRow][lastCol] = null;
                 this.changeTurn();
-                return true;
+                return rank;
             }
         }
     }

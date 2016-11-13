@@ -207,8 +207,8 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                 } else {
                     // if it is the second stage to move, then try to move to that place
                     BoardPosition last = new BoardPosition(lastRowPosition, lastColPosition);
-                    boolean success = game.movePiece(last, bp);
-                    if (success) {
+                    int success = game.movePiece(last, bp);
+                    if (success >= 0) {
                         this.recorder.record(last, bp);
                         lastRowPosition = -1;
                         lastColPosition = -1;

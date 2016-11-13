@@ -248,9 +248,9 @@ public class Feature {
 
                 if (p != null && !p.getColor().equals(side)) {
                     Game g = game.copy();
-                    boolean success = g.movePiece(new BoardPosition(i, j), bp);
+                    int success = g.movePiece(new BoardPosition(i, j), bp);
 
-                    if (success && lowest > p.getRank()) {
+                    if (success >= 0 && lowest > p.getRank()) {
                         lowest = p.getRank();
                     }
                 }
