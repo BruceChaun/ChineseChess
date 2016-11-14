@@ -13,7 +13,8 @@ public class Test {
     private void run(String[] args) {
 //        testFeatureExtraction();
 //        testNegative();
-        testNN();
+//        testNN();
+        testMCTS();
     }
 
     /*
@@ -28,8 +29,7 @@ public class Test {
             try {
                 while ((strLine = br.readLine()) != null) {
                     Game game = new Game();
-                    game.initBoard(strLine);
-                    System.out.println(strLine);
+                    game.initBoard(strLine + "4353");
                     List<List<Double>> features = Feature.featureExtractor(game);
                     for (List<Double> fl : features) {
                         for (Double d : fl) {
@@ -89,9 +89,9 @@ public class Test {
             List<Double> list = new ArrayList<Double>();
             double d = new Random().nextDouble() * 5; 
             list.add(d);
-            System.out.print("features\n" + d + "\t");
+//            System.out.print("features\n" + d + "\t");
             d = new Random().nextDouble() * 5;
-            System.out.println(d);
+//            System.out.println(d);
             list.add(d);
             features.add(list);
         }
@@ -99,8 +99,38 @@ public class Test {
         int n2 = 2;
         nn.init(features, n1, n2);
         for (int i = 0; i < 10; i++) {
-        System.out.println("output\t" + nn.forward(features));
-        nn.backpropagation(features, -1);
+            System.out.println("output\t" + nn.forward(features));
+            nn.backpropagation(features, -1);
+        }
+    }
+    
+    /*
+     * test MCTS
+     */
+    private void testMCTS() {
+        String file = "src/data/sample.txt";
+        BufferedReader br = FileHandler.read(file);
+        Game game = new Game();
+        if (br != null) {
+            try {
+                game.initBoard(br.readLine());
+            } catch (IOException e) {
+                game.initBoard();
+            }
+        } else {
+            game.initBoard();
+        }
+        
+        List<List<Double>> features = Feature.featureExtractor(game);
+        NN nn = new NN();
+        nn.init(features);
+        
+        MCTS mcts = new MCTS(nn);
+        mcts.setRoot(game);
+        for (int i = 0; i < 5; i++) {
+            System.out.println("round " + i);
+            mcts.search();
+            mcts.printAllNodes(mcts.getRoot());
         }
     }
 }
