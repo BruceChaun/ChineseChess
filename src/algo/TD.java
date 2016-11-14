@@ -18,7 +18,7 @@ public class TD {
     
     // constant parameters
     private final double Z = 200.0; // normalized reward factor
-    private final double gamma = 0.7; // discounted factor
+    public static final double gamma = 0.7; // discounted factor
     private final double lambda = 0.7; // TD(lambda)
     private final double alpha = 0.2; // learning rate
     
@@ -108,54 +108,8 @@ public class TD {
     public double TDSelfLearn(NN nn, Game game) {
         double[] values  = new double[this.numStepToSim]; // store value function
         
-        String move = chooseOptMove(game, nn);
+        String move = game.chooseOptMove(nn);
         double error = 0;
         return error;
-    }
-
-    /*
-     * choose the optimal move from all possible moves.
-     * The returned string has the same format as the record
-     */
-    private String chooseOptMove(Game game, NN nn) {
-        String optMove = "";
-        double bestScore = -1;
-        List<int[]> allMoves = getAllPiecePossibleMoves(game);
-        
-        // naive implementation: TD(0)
-        for (int[] a : allMoves) {
-            Game copy = game.copy();
-            double val = copy.movePiece(new BoardPosition(a[0], a[1]), new BoardPosition(a[2], a[3]));
-            val += nn.forward(Feature.featureExtractor(copy)) * this.gamma;
-            if (bestScore < val) {
-                optMove = a[1] + "" + a[0] + "" + a[3] + "" + a[2];
-                bestScore = val;
-            }
-        }
-        
-        return optMove;
-    }
-    
-    /*
-     * check piece one by one and store in a list of int array, 
-     * int array has size 4, each represent the row/column of 
-     * one position
-     */
-    private List<int[]> getAllPiecePossibleMoves(Game game) {
-        Colors side = game.getTurn();
-        List<int[]> allMoves = new ArrayList<int[]>();
-        
-        for (int i = 0; i < Game.ROW; i++) {
-            for (int j = 0; j < Game.COLUMN; j++) {
-                Piece p = game.getPiece(i, j);
-                if (p != null && p.getColor().equals(side)) {
-                    List<BoardPosition> pieceMoves = p.getLegalMoves(game.getPieces(), new BoardPosition(i, j));
-                    for (BoardPosition bp : pieceMoves) {
-                        allMoves.add(new int[]{i, j, bp.Row(), bp.Col()});
-                    }
-                }
-            }
-        }
-        return allMoves;
     }
 }
