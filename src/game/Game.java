@@ -1,7 +1,10 @@
 package game;
 
-import java.util.List;
+import java.util.*;
 
+import algo.Feature;
+import algo.NN;
+import algo.TD;
 import constants.*;
 import pieces.*;
 
@@ -285,5 +288,64 @@ public class Game {
 
     public void simulate(String record) {
         this.simulate(record, -1);
+    }
+    
+    /*
+     * check piece one by one and store in a list of int array, 
+     * int array has size 4, each represent the row/column of 
+     * one position
+     */
+    public List<int[]> getAllPiecePossibleMoves() {
+        Colors side = getTurn();
+        List<int[]> allMoves = new ArrayList<int[]>();
+        
+        for (int i = 0; i < ROW; i++) {
+            for (int j = 0; j < COLUMN; j++) {
+                Piece p = getPiece(i, j);
+                if (p != null && p.getColor().equals(side)) {
+                    List<BoardPosition> pieceMoves = p.getLegalMoves(getPieces(), new BoardPosition(i, j));
+                    for (BoardPosition bp : pieceMoves) {
+                        allMoves.add(new int[]{i, j, bp.Row(), bp.Col()});
+                    }
+                }
+            }
+        }
+        return allMoves;
+    }
+    
+    /*
+     * choose the optimal move from all possible moves.
+     * The returned string has the same format as the record
+     */
+    public String chooseOptMove(NN nn) {
+        String optMove = "";
+        double bestScore = Double.NEGATIVE_INFINITY;
+        List<int[]> allMoves = getAllPiecePossibleMoves();
+        
+        // naive implementation: TD(0)
+        for (int[] a : allMoves) {
+            Game g = this.copy();
+            double val = g.movePiece(new BoardPosition(a[0], a[1]), new BoardPosition(a[2], a[3]));
+            
+            if (g.getWinner() != null) {
+                optMove = a[1] + "" + a[0] + "" + a[3] + "" + a[2];
+                break;
+            }
+            g.changeTurn();
+            val += nn.forward(Feature.featureExtractor(g)) * TD.gamma;
+            if (bestScore < val) {
+                optMove = a[1] + "" + a[0] + "" + a[3] + "" + a[2];
+                bestScore = val;
+            }
+        }
+        
+        return optMove;
+    }
+    
+    public String chooseRandMove() {
+        List<int[]> allMoves = getAllPiecePossibleMoves();
+        int[] a = allMoves.get(new Random().nextInt(allMoves.size()));
+        String move = a[1] + "" + a[0] + "" + a[3] + "" + a[2];
+        return move;
     }
 }
