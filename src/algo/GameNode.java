@@ -44,9 +44,9 @@ class GameNode {
      * indicating exploration, the first term is called exploitation
      */
     double UCT() {
+        if (this.numVisit == 0) return 10E6;
         double uct = this.NNScore;
-        if (this.numVisit > 0 && this.simScore > 0)
-            uct += 1.0 * this.simScore / this.numVisit;
+        uct += 1.0 * this.simScore / this.numVisit;
         if (this.parent != null) {
             uct += Math.sqrt(2 * Math.log(this.parent.numVisit) / this.numVisit);
         }
