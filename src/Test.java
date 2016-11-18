@@ -14,7 +14,32 @@ public class Test {
 //        testFeatureExtraction();
 //        testNegative();
 //        testNN();
-        testMCTS();
+//        testMCTS();
+        testSim();
+    }
+
+    private void testSim() {
+        String file = "src/data/movelist/lose.txt";
+        BufferedReader br = FileHandler.read(file);
+        
+        if (br != null) {
+            String strLine = "";
+            try {
+                while ((strLine = br.readLine()) != null) {
+                    System.out.println(strLine);
+                    Game game = new Game();
+                    game.initBoard(strLine);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /*
