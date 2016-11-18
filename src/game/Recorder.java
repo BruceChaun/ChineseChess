@@ -6,17 +6,17 @@ public class Recorder {
     public Recorder() {record = "";}
     public Recorder(String record) {
         this.record = record;
-        }
-    
-    public void record(BoardPosition from, BoardPosition to) {
-        record += from.Col() + "" + from.Row() + "" + to.Col() + "" + to.Row();
     }
     
-    public String output() {
+    public void record(BoardPosition from, BoardPosition to) {
+        record += from.toString() + to.toString();
+    }
+    
+    public String retrieve() {
         return record;
     }
     
     public Recorder copy() {
-        return new Recorder(this.output());
+        return new Recorder(this.record);
     }
 }

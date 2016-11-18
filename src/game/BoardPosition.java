@@ -17,6 +17,11 @@ public class BoardPosition {
             return true;
         return false;
     }
+    
+    @Override
+    public String toString() {
+        return this.col + "" + this.row;
+    }
 
     /*
      * calculate Manhattan distance from this to that

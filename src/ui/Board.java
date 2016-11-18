@@ -20,9 +20,13 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
      *   private variables to maintain the board information
      */
     private Game game;
-    private static Recorder recorder;
+    private static String record;
     private int x = 0, y = 0;                                        // capture the coordinate of mouse clicking
     private int lastRowPosition, lastColPosition;
+    
+    public static  String outputGameRecord() {
+        return record;
+    }
 
     @Override
     public void paintComponent(Graphics g) {
@@ -60,15 +64,11 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     public Board() {
-        this.recorder = new Recorder();
         this.game = new Game();
         this.game.initBoard();
         lastRowPosition = -1; 
         lastColPosition = -1;
-    }
-    
-    public static  String outputGameRecord() {
-        return recorder.output();
+        this.record = this.game.getRecord();
     }
 
     /*
@@ -209,7 +209,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                     BoardPosition last = new BoardPosition(lastRowPosition, lastColPosition);
                     int success = game.movePiece(last, bp);
                     if (success >= 0) {
-                        this.recorder.record(last, bp);
+                        String move = last.toString() + bp.toString();
+                        record += move;
+                        this.game.record(move);
                         lastRowPosition = -1;
                         lastColPosition = -1;
                     }

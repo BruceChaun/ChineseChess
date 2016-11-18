@@ -12,6 +12,7 @@ public class Game {
     private Piece[][] pieces;
     private boolean redTurn = true;
     private Colors winner;
+    private Recorder recorder;
 
     public static final int ROW = 10;
     public static final int COLUMN = 9;
@@ -72,6 +73,24 @@ public class Game {
     }
 
     /*
+     * record a move
+     */
+    public void record(String move) {
+        BoardPosition from = new BoardPosition(
+                Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
+        BoardPosition to = new BoardPosition(
+                Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+        this.recorder.record(from, to);
+    }
+    
+    /*
+     * retrieve current record
+     */
+    public String getRecord() {
+        return this.recorder.retrieve();
+    }
+
+    /*
      * get a copy of current board
      */
     public Game copy() {
@@ -111,6 +130,7 @@ public class Game {
         this.pieces = new Piece[ROW][COLUMN];
         this.winner = null;
         this.redTurn = true;
+        this.recorder = new Recorder();
 
         /*
          *   black player
@@ -221,7 +241,6 @@ public class Game {
         int toRow = to.Row(), toCol = to.Col();
         Piece pieceToMove = pieces[row][col];
         List<BoardPosition> allMoves = pieceToMove.getLegalMoves(pieces, from);
-
         
         BoardPosition blackJiang = getPiecePosition(Colors.BLACK, PieceName.JIANG);
         BoardPosition redJiang = getPiecePosition(Colors.RED, PieceName.JIANG);
@@ -276,15 +295,16 @@ public class Game {
         if (steps >= 0) numMoves = steps;
 
         for (int i = 0; i < numMoves; i++) {
-            int start = i * 4;
+            String move = record.substring(i*4, i*4+4);
             BoardPosition from = new BoardPosition(
-                    Integer.parseInt(record.substring(start+1, start+2)), Integer.parseInt(record.substring(start, start+1)));
+                    Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
             BoardPosition to = new BoardPosition(
-                    Integer.parseInt(record.substring(start+3, start+4)), Integer.parseInt(record.substring(start+2, start+3)));
+                    Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
             int val = this.movePiece(from, to);
             if (val < 0) {
-                System.out.println(i + "\t" + record.substring(start, start+4));
+                System.out.println(i + "\t" + move);
             }
+            this.record(move);
         }
 
         // reset turn
@@ -297,13 +317,12 @@ public class Game {
     }
     
     /*
-     * check piece one by one and store in a list of int array, 
-     * int array has size 4, each represent the row/column of 
-     * one position
+     * check piece one by one and store in a list of String array, 
+     * each string is a standard move string
      */
-    public List<int[]> getAllPiecePossibleMoves() {
+    public List<String> getAllPiecePossibleMoves() {
         Colors side = getTurn();
-        List<int[]> allMoves = new ArrayList<int[]>();
+        List<String> allMoves = new ArrayList<String>();
         
         for (int i = 0; i < ROW; i++) {
             for (int j = 0; j < COLUMN; j++) {
@@ -311,7 +330,7 @@ public class Game {
                 if (p != null && p.getColor().equals(side)) {
                     List<BoardPosition> pieceMoves = p.getLegalMoves(getPieces(), new BoardPosition(i, j));
                     for (BoardPosition bp : pieceMoves) {
-                        allMoves.add(new int[]{i, j, bp.Row(), bp.Col()});
+                        allMoves.add(j + "" + i + bp.toString());
                     }
                 }
             }
@@ -326,21 +345,23 @@ public class Game {
     public String chooseOptMove(NN nn) {
         String optMove = "";
         double bestScore = Double.NEGATIVE_INFINITY;
-        List<int[]> allMoves = getAllPiecePossibleMoves();
+        List<String> allMoves = getAllPiecePossibleMoves();
         
         // naive implementation: TD(0)
-        for (int[] a : allMoves) {
+        for (String m : allMoves) {
             Game g = this.copy();
-            double val = g.movePiece(new BoardPosition(a[0], a[1]), new BoardPosition(a[2], a[3]));
+            double val = g.movePiece(
+                    new BoardPosition(Integer.parseInt(m.substring(1, 2)), Integer.parseInt(m.substring(0, 1))), 
+                    new BoardPosition(Integer.parseInt(m.substring(3, 4)), Integer.parseInt(m.substring(2, 3))));
             
             if (g.getWinner() != null) {
-                optMove = a[1] + "" + a[0] + "" + a[3] + "" + a[2];
+                optMove = m;
                 break;
             }
             g.changeTurn();
             val += nn.forward(Feature.featureExtractor(g)) * TD.gamma;
             if (bestScore < val) {
-                optMove = a[1] + "" + a[0] + "" + a[3] + "" + a[2];
+                optMove = m;
                 bestScore = val;
             }
         }
@@ -349,9 +370,8 @@ public class Game {
     }
     
     public String chooseRandMove() {
-        List<int[]> allMoves = getAllPiecePossibleMoves();
-        int[] a = allMoves.get(new Random().nextInt(allMoves.size()));
-        String move = a[1] + "" + a[0] + "" + a[3] + "" + a[2];
+        List<String> allMoves = getAllPiecePossibleMoves();
+        String move = allMoves.get(new Random().nextInt(allMoves.size()));
         return move;
     }
 }
