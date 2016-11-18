@@ -1,6 +1,11 @@
 package algo;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
+
+import util.FileHandler;
 
 /*
  * This is the neural network specific to the Chinese chess project, 
@@ -74,9 +79,131 @@ public class NN {
     private double[][] hiddenLayerGrad;
     private double[][] outputGrad;
     
+    
+    void exportParameters(String file) {
+        PrintWriter writer = FileHandler.write(file);
+        exportWeights(writer, this.globalWeights, "global");
+        exportWeights(writer, this.pieceWeights, "piece");
+        exportWeights(writer, this.positionWeights, "position");
+        exportWeights(writer, this.hiddenLayerWeights, "hidden");
+        exportWeights(writer, this.outputWeights, "output");
+        writer.close();
+    }
+    
+    private void exportWeights(PrintWriter writer, double[][] weight, String which) {
+        writer.println(which + " " + weight.length + " " + weight[0].length);
+        for (int i = 0; i < weight.length; i++) {
+            for (int j = 0; j < weight[0].length; j++) {
+                writer.print(weight[i][j] + " ");
+            }
+            writer.println();
+        }
+    }
+    
     /*
      * initialize the weights of NN
      */
+    public boolean init(String file) {
+        // read parameters from a saved file
+        BufferedReader br = FileHandler.read(file);
+        if (br != null) {
+            String strLine;
+            try {
+                int i = 0;
+                String which = "global"; 
+                while ((strLine = br.readLine()) != null) {
+                    String[] a = strLine.trim().split(" ");
+                   if (a[0].equals("global")) {
+                       int row = Integer.parseInt(a[1]);
+                       int col = Integer.parseInt(a[2]);
+                       this.globalWeights = new double[row][col];
+                       i = 0;
+                   } else if (a[0].equals("piece")) {
+                       int row = Integer.parseInt(a[1]);
+                       int col = Integer.parseInt(a[2]);
+                       this.pieceWeights = new double[row][col];
+                       i = 0;
+                       which = "piece";
+                   } else if (a[0].equals("position")) {
+                       int row = Integer.parseInt(a[1]);
+                       int col = Integer.parseInt(a[2]);
+                       this.positionWeights = new double[row][col];
+                       i = 0;
+                       which = "position";
+                   } else if (a[0].equals("hidden")) {
+                       int row = Integer.parseInt(a[1]);
+                       int col = Integer.parseInt(a[2]);
+                       this.hiddenLayerWeights = new double[row][col];
+                       i = 0;
+                       which = "hidden";
+                   } else if (a[0].equals("output")) {
+                       int row = Integer.parseInt(a[1]);
+                       int col = Integer.parseInt(a[2]);
+                       this.outputWeights = new double[row][col];
+                       i = 0;
+                       which = "output";
+                   } else {
+                       if (which.equals("global")) {
+                           int col = this.globalWeights[0].length;
+                           for (int j = 0; j < col; j++) {
+                               this.globalWeights[i][j] = Double.parseDouble(a[j]);
+                           }
+                           i++;
+                       } else if (which.equals("piece")) {
+                           int col = this.pieceWeights[0].length;
+                           for (int j = 0; j < col; j++) {
+                               this.pieceWeights[i][j] = Double.parseDouble(a[j]);
+                           }
+                           i++;
+                       } else if (which.equals("position")) {
+                           int col = this.positionWeights[0].length;
+                           for (int j = 0; j < col; j++) {
+                               this.positionWeights[i][j] = Double.parseDouble(a[j]);
+                           }
+                           i++;
+                       } else if (which.equals("hidden")) {
+                           int col = this.hiddenLayerWeights[0].length;
+                           for (int j = 0; j < col; j++) {
+                               this.hiddenLayerWeights[i][j] = Double.parseDouble(a[j]);
+                           }
+                           i++;
+                       } else if (which.equals("output")) {
+                           int col = this.outputWeights[0].length;
+                           for (int j = 0; j < col; j++) {
+                               this.outputWeights[i][j] = Double.parseDouble(a[j]);
+                           }
+                           i++;
+                       }
+                   }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            
+            // init size
+            this.numGlobalInput = this.globalWeights.length - 1;
+            this.numPieceInput = this.pieceWeights.length - 1;
+            this.numPositionInput = this.positionWeights.length - 1;
+            this.numHidden11 = this.globalWeights[0].length;
+            this.numHidden12 = this.pieceWeights[0].length;
+            this.numHidden13 = this.positionWeights[0].length;
+            this.numHidden1 = this.numHidden11 + this.numHidden12 + this.numHidden13;
+            this.numHidden2 = this.outputWeights.length - 1;
+            this.numOutput = 1;
+            
+            // init other parameters
+            this.initOptParameters();
+            return true;
+        }
+        return false;
+    }
+    
     public void init(List<List<Double>> features) {
         int[] n1 = {this.numHidden11, this.numHidden12, this.numHidden13};
         int n2 = this.numHidden2;
@@ -94,20 +221,11 @@ public class NN {
         this.numHidden2 = numHidden2;
         this.numOutput = 1;
         
-        this.hiddenOutput1 = new ArrayList<double[]>();
-        this.hiddenOutput2 = new double[this.numHidden2];
-        
         this.globalWeights = new double[this.numGlobalInput + 1][this.numHidden11];
         this.pieceWeights = new double[this.numPieceInput + 1][this.numHidden12];
         this.positionWeights = new double[this.numPositionInput + 1][this.numHidden13];
         this.hiddenLayerWeights = new double[this.numHidden1 + 1][this.numHidden2];
         this.outputWeights = new double[this.numHidden2 + 1][this.numOutput];
-        
-        this.globalDelta = new double[this.numGlobalInput + 1][this.numHidden11];
-        this.pieceDelta = new double[this.numPieceInput + 1][this.numHidden12];
-        this.positionDelta = new double[this.numPositionInput + 1][this.numHidden13];
-        this.hiddenLayerDelta = new double[this.numHidden1 + 1][this.numHidden2];
-        this.outputDelta = new double[this.numHidden2 + 1][this.numOutput];
         
         initWeights(this.globalWeights);
         initWeights(this.pieceWeights);
@@ -115,11 +233,28 @@ public class NN {
         initWeights(this.hiddenLayerWeights);
         initWeights(this.outputWeights);
         
+        this.initOptParameters();
+    }
+    
+    /*
+     * initialize other helping parameters in optimization procedure
+     */
+    private void initOptParameters() {
+        this.hiddenOutput1 = new ArrayList<double[]>();
+        this.hiddenOutput2 = new double[this.numHidden2];
+        
+        this.globalDelta = new double[this.numGlobalInput + 1][this.numHidden11];
+        this.pieceDelta = new double[this.numPieceInput + 1][this.numHidden12];
+        this.positionDelta = new double[this.numPositionInput + 1][this.numHidden13];
+        this.hiddenLayerDelta = new double[this.numHidden1 + 1][this.numHidden2];
+        this.outputDelta = new double[this.numHidden2 + 1][this.numOutput];
+        
         this.globalEta = new double[this.numGlobalInput + 1][this.numHidden11];
         this.pieceEta = new double[this.numPieceInput + 1][this.numHidden12];
         this.positionEta = new double[this.numPositionInput + 1][this.numHidden13];
         this.hiddenLayerEta = new double[this.numHidden1 + 1][this.numHidden2];
         this.outputEta = new double[this.numHidden2 + 1][this.numOutput];
+        
         initLearningRate(this.globalEta);
         initLearningRate(this.pieceEta);
         initLearningRate(this.positionEta);
@@ -288,7 +423,7 @@ public class NN {
      * This is supervised version of training
      * input is @features and output is @label which indicates the positive 
      * or negative samples. Because we use tanh activation function whose 
-     * range is (-1, 1), the label here should be 1 or -1.
+     * range is (-1, 1), the label here should be 1, 0 or  -1.
      * 
      * The loss function is E = (y - label) ^ 2 / 2
      */
