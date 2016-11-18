@@ -19,7 +19,7 @@ public class TD {
     // constant parameters
     private final double Z = 200.0; // normalized reward factor
     public static final double gamma = 0.7; // discounted factor
-    private final double lambda = 0.7; // TD(lambda)
+    public static final double lambda = 0.7; // TD(lambda)
     private final double alpha = 0.2; // learning rate
     
     public TD(int numStepToSim) {

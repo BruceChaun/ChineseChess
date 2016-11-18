@@ -1,10 +1,12 @@
 package algo;
 
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
+import game.*;
 import util.FileHandler;
 
 /*
@@ -59,6 +61,7 @@ public class NN {
     private final byte TanH_MODE = 1;
     
     // learning rate
+    private double alpha;
     private double[][] globalEta;
     private double[][] pieceEta;
     private double[][] positionEta;
@@ -79,24 +82,42 @@ public class NN {
     private double[][] hiddenLayerGrad;
     private double[][] outputGrad;
     
+    // estimated values functions from step 1 to m (end)
+    private double[] value;
+    private int episodeWindow = 10;
     
-    void exportParameters(String file) {
-        PrintWriter writer = FileHandler.write(file);
-        exportWeights(writer, this.globalWeights, "global");
-        exportWeights(writer, this.pieceWeights, "piece");
-        exportWeights(writer, this.positionWeights, "position");
-        exportWeights(writer, this.hiddenLayerWeights, "hidden");
-        exportWeights(writer, this.outputWeights, "output");
-        writer.close();
+    // gradient by eipsode
+    private double[][][] globalGrad_e;
+    private double[][][] pieceGrad_e;
+    private double[][][] positionGrad_e;
+    private double[][][] hiddenLayerGrad_e;
+    private double[][][] outputGrad_e;
+    
+    boolean exportParameters(String file) {
+        try {
+            FileWriter writer = FileHandler.write(file, false);
+            if (writer != null) {
+                exportWeights(writer, this.globalWeights, "global");
+                exportWeights(writer, this.pieceWeights, "piece");
+                exportWeights(writer, this.positionWeights, "position");
+                exportWeights(writer, this.hiddenLayerWeights, "hidden");
+                exportWeights(writer, this.outputWeights, "output");
+                writer.close();
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
     
-    private void exportWeights(PrintWriter writer, double[][] weight, String which) {
-        writer.println(which + " " + weight.length + " " + weight[0].length);
+    private void exportWeights(FileWriter writer, double[][] weight, String which) throws IOException {
+        writer.write(which + " " + weight.length + " " + weight[0].length + "\n");
         for (int i = 0; i < weight.length; i++) {
             for (int j = 0; j < weight[0].length; j++) {
-                writer.print(weight[i][j] + " ");
+                writer.write(weight[i][j] + " ");
             }
-            writer.println();
+            writer.write("\n");
         }
     }
     
@@ -415,6 +436,237 @@ public class NN {
         for (int i = 0; i < len; i++)
             augArray[i+1] = array[i];
         return augArray;
+    }
+    
+    /*
+     * train the whole procedure using TD
+     * use the @result as true label to back propagate, and assume only consider
+     * the successive 10 moves, not all the moves.
+     * 
+     * dw_tij = alpha * (V_t+1-V_t) \sum_k=1^t lambda^t-k d_ij V_k
+     * 
+     * parameters:
+     * @result is the final result of the chess
+     * @record is the whole moves
+     */
+    public void backpropagation(int result, String record) {
+        int n = record.length() / 4;
+        this.value = new double[n];
+        
+        // w[t][i][j]
+        this.globalGrad_e = new double[n][this.numGlobalInput + 1][this.numHidden11];
+        this.pieceGrad_e = new double[n][this.numPieceInput + 1][this.numHidden12];
+        this.positionGrad_e = new double[n][this.numPositionInput + 1][this.numHidden13];
+        this.hiddenLayerGrad_e = new double[n][this.numHidden1 + 1][this.numHidden2];
+        this.outputGrad_e = new double[n][this.numHidden2 + 1][this.numOutput];
+      
+        Game game = new Game();
+        game.initBoard();
+        // first move
+        String move = record.substring(0, 4);
+        BoardPosition from = new BoardPosition(
+                Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
+        BoardPosition to = new BoardPosition(
+                Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+        game.movePiece(from, to);
+        List<List<Double>> feat = Feature.featureExtractor(game);
+        this.value[0] = this.forward(feat);
+        game.changeTurn();
+        
+        // lambda array, I don't want to call pow function each iteration
+        double[] lambda = new double[this.episodeWindow];
+        lambda[0] = 1;
+        for (int i = 1; i < lambda.length; i++)
+            lambda[i] = lambda[i-1] * TD.lambda;
+        
+        // calculate error in each step
+        for (int t = 0; t < n; t++) {
+            double tdiff = 0;
+            List<List<Double>> nextFeat = null;
+            
+            if (t < n -1) {
+                move = record.substring((t+1) * 4, (t+2) * 4);
+                from = new BoardPosition(
+                        Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
+                to = new BoardPosition(
+                        Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+                game.movePiece(from, to);
+                nextFeat = Feature.featureExtractor(game);
+                this.value[t+1] = this.forward(nextFeat);
+                game.changeTurn();
+            }
+            
+            // temporal difference term: V_t+1 - V_t
+            if (t < n-2) {
+                tdiff = this.value[t+1] - this.value[t];
+            } else if (t == n-2) {
+                tdiff = -result - this.value[t];
+            } else if (t == n-1) {
+                tdiff = result - this.value[t];
+            }
+            
+            // calculate gradient V_t w.r.t. w_ij
+            double p = this.dtanh(this.value[t]);
+            this.outputWeightGrad_e(t, p);
+            this.hiddenWeightGrad_e(t, p);
+            this.globalWeightGrad_e(t, p, this.list2array(feat.get(0)));
+            this.pieceWeightGrad_e(t, p, this.list2array(feat.get(1)));
+            this.positionWeightGrad_e(t, p, this.list2array(feat.get(2)));
+            
+            // update delta weight arrays
+            int start = Math.max(0, t-this.episodeWindow+1);
+            int end = start + this.episodeWindow - 1;
+            this.updateWeight_e(this.outputGrad_e, tdiff, lambda, start, end, this.outputDelta);
+            this.updateWeight_e(this.hiddenLayerGrad_e, tdiff, lambda, start, end, this.hiddenLayerDelta);
+            this.updateWeight_e(this.globalGrad_e, tdiff, lambda, start, end, this.globalDelta);
+            this.updateWeight_e(this.pieceGrad_e, tdiff, lambda, start, end, this.pieceDelta);
+            this.updateWeight_e(this.positionGrad_e, tdiff, lambda, start, end, this.positionDelta);
+            
+            if (t < n-1) {
+                feat = nextFeat;
+            }
+        }
+        
+        // update weight after summing over all the steps
+        this.updateWeight(this.outputWeights, this.outputDelta);
+        this.updateWeight(this.hiddenLayerWeights, this.hiddenLayerDelta);
+        this.updateWeight(this.globalWeights, this.globalDelta);
+        this.updateWeight(this.pieceWeights, this.pieceDelta);
+        this.updateWeight(this.positionWeights, this.positionDelta);
+    }
+    
+    /*
+     * update weights in episodic sequence
+     * 
+     * parameters:
+     * @grad is the error gradient array of weight
+     * @tdiff is the temporal difference V_t+1 - V_t
+     * @lambda is the lambda array, indicating the discount factor, TD-lambda
+     * @start and @end give the range of the summation over gradients of several steps
+     * @delta is the array stores the accumulated error of w_ij
+     */
+    private void updateWeight_e(double[][][] grad, double tdiff, 
+            double[] lambda, int start, int end, double[][] delta) {
+        int n = delta.length;
+        int m = delta[0].length;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                double sum = 0;
+                for (int k = start; k <= end; k++) {
+                    sum += lambda[k-start] * grad[k][i][j];
+                }
+                delta[i][j] += sum * this.alpha * tdiff;
+            }
+        }
+    }
+    
+    private void outputWeightGrad_e(int t, double factor) {
+        int n = this.outputGrad_e[0].length;
+        double[] values = this.copy(this.hiddenOutput2);
+        this.activate(values, ReLU_MODE);
+        
+        for (int i = 0; i < n; i++) {
+            double d_m = factor;
+            if (i != 0) d_m *= values[i-1];
+            this.outputGrad_e[t][i][0] = -d_m;
+        }
+    }
+    
+    private void hiddenWeightGrad_e(int t, double factor) {
+        int n = this.hiddenLayerGrad_e[0].length;
+        int m = this.hiddenLayerGrad_e[0][0].length;
+        
+        double[] global = this.copy(this.hiddenOutput1.get(0));
+        int globalLen = global.length;
+        this.activate(global, ReLU_MODE);
+        double[] piece = this.copy(this.hiddenOutput1.get(1));
+        int pieceLen = piece.length;
+        this.activate(piece, ReLU_MODE);
+        double[] position = this.copy(this.hiddenOutput1.get(2));
+        this.activate(position, ReLU_MODE);
+        
+        for (int j = 0; j < m; j++) {
+            double q = factor * this.dReLU(this.hiddenOutput2[j]) * this.outputWeights[j][0];
+            for (int i = 0; i < n; i++) {
+                double d_m = q;
+                if (i == 0) {
+                    // bias
+                } else if (i <= globalLen) {
+                    // global feature part
+                    d_m *= global[i-1];
+                } else if (i <= pieceLen + globalLen) {
+                    // piece feature part
+                    d_m *= piece[i - globalLen - 1];
+                } else {
+                    // position feature part
+                    d_m *= position[i - globalLen - pieceLen - 1];
+                }
+                this.hiddenLayerGrad_e[t][i][j] = -d_m;
+            }
+        }
+    }
+    
+    private void globalWeightGrad_e(int t, double factor, double[] globalFeatures) {
+        int n = this.globalGrad_e[0].length;
+        int m = this.globalGrad_e[0][0].length;
+        double[] global = this.hiddenOutput1.get(0);
+        int hidden2len = this.hiddenOutput2.length;
+        
+        for (int i = 0; i < m; i++) {
+            double q = 0;
+            for (int j = 0; j < hidden2len; j++) {
+                q += this.outputWeights[j+1][0] * this.dReLU(this.hiddenOutput2[j])
+                        * this.hiddenLayerWeights[i+1][j];
+            }
+            
+            double d_m = factor * q * this.dReLU(global[i]);
+            for (int k = 0; k < n; k++) {
+                if (k != 0) d_m *=  globalFeatures[k-1];
+                this.globalGrad_e[t][k][i] = -d_m;
+            }
+        }
+    }
+    
+    private void pieceWeightGrad_e(int t, double factor, double[] pieceFeatures) {
+        int n = this.pieceGrad_e[0].length;
+        int m = this.pieceGrad_e[0].length;
+        double[] piece = this.hiddenOutput1.get(1);
+        int hidden2len = this.hiddenOutput2.length;
+        
+        for (int i = 0; i < m; i++) {
+            double q = 0;
+            for (int j = 0; j < hidden2len; j++) {
+                q += this.outputWeights[j+1][0] * this.dReLU(this.hiddenOutput2[j])
+                        * this.hiddenLayerWeights[i+1][j];
+            }
+            
+            double d_m = factor * q * this.dReLU(piece[i]);
+            for (int k = 0; k < n; k++) {
+                if (k != 0) d_m *=  pieceFeatures[k-1];
+                this.pieceGrad_e[t][k][i] = -d_m;
+            }
+        }
+    }
+    
+    private void positionWeightGrad_e(int t, double factor, double[] positionFeatures) {
+        int n = this.positionGrad_e[0].length;
+        int m = this.positionGrad_e[0][0].length;
+        double[] position = this.hiddenOutput1.get(2);
+        int hidden2len = this.hiddenOutput2.length;
+        
+        for (int i = 0; i < m; i++) {
+            double q = 0;
+            for (int j = 0; j < hidden2len; j++) {
+                q += this.outputWeights[j+1][0] * this.dReLU(this.hiddenOutput2[j])
+                        * this.hiddenLayerWeights[i+1][j];
+            }
+            
+            double d_m = factor * q * this.dReLU(position[i]);
+            for (int k = 0; k < n; k++) {
+                if (k != 0) d_m *=  positionFeatures[k-1];
+                this.positionGrad_e[t][k][i] = -d_m;
+            }
+        }
     }
     
     /*
