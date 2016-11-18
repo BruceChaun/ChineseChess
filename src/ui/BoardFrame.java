@@ -1,6 +1,7 @@
 package ui;
 
-import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 
@@ -18,11 +19,17 @@ public class BoardFrame extends JFrame {
         // output the chess game record when click on EXIT
         String fileName = "src/data/record.txt";
         String content = Board.outputGameRecord();
-        PrintWriter writer = FileHandler.write(fileName);
-        if (writer != null) {
-            writer.println(content);
+        FileWriter writer = FileHandler.write(fileName, true);
+        
+        if (writer != null && content.length() > 0) {
+            try {
+                writer.write(content + "\n");
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        writer.close();
+        
         super.dispose();
     }
 }

@@ -1,9 +1,12 @@
 package algo;
 
-import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
-import game.*;
+import game.BoardPosition;
+import game.Game;
+import game.Recorder;
 import pieces.Piece;
 import util.FileHandler;
 
@@ -18,7 +21,7 @@ public class NegativeData {
      *  
      *  write the generated negative record into file @fileName
      */
-    public static void generate(String record, int step, String fileName, boolean onlySelectedPiece) {
+    public static void generate(String record, int step, String fileName, boolean onlySelectedPiece) throws IOException {
         if (step < 1 || step * 4 > record.length())
             return;
         
@@ -38,12 +41,12 @@ public class NegativeData {
         List<BoardPosition> legalMoves = chosen.getLegalMoves(game.getPieces(), from);
         
         String previousRecord = record.substring(0, (step - 1) * 4);
-        PrintWriter writer = FileHandler.write(fileName);
+        FileWriter writer = FileHandler.write(fileName, false);
         for (BoardPosition bp : legalMoves) {
             if (!bp.equals(to)) {
                 Recorder r = new Recorder(previousRecord);
                 r.record(from, bp);
-                writer.println(r.output());
+                writer.write(r.retrieve() + "\n");
             }
         }
         
@@ -59,7 +62,7 @@ public class NegativeData {
                         for (BoardPosition bp : legalMoves) {
                             Recorder r = new Recorder(previousRecord);
                             r.record(pos, bp);
-                            writer.println(r.output());
+                            writer.write(r.retrieve() + "\n");
                         }
                     }
                 }

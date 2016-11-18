@@ -16,13 +16,12 @@ public class FileHandler {
         }
     }
     
-    public static PrintWriter write(String fileName) {
-        PrintWriter writer;
+    public static FileWriter write(String fileName, boolean append) {
         try {
-            writer = new PrintWriter(fileName, "UTF-8");
-            return writer;
-        } catch (Exception e) {
-            e.printStackTrace();
+            FileWriter fw = new FileWriter(fileName, append);
+            return fw;
+        } catch (IOException e1) {
+            e1.printStackTrace();
             return null;
         }
     }
