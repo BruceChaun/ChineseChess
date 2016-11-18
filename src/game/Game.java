@@ -181,7 +181,7 @@ public class Game {
         int lastRow = from.Row(), lastCol = from.Col();
 
         // check if legal move
-        if (!isLegalMove(from, to)) return -1;
+        if (!this.isLegalMove(from, to)) return -1;
 
         // can move if there is no piece in that place
         if (pieces[row][col] == null) {
@@ -222,19 +222,22 @@ public class Game {
         Piece pieceToMove = pieces[row][col];
         List<BoardPosition> allMoves = pieceToMove.getLegalMoves(pieces, from);
 
+        
         BoardPosition blackJiang = getPiecePosition(Colors.BLACK, PieceName.JIANG);
         BoardPosition redJiang = getPiecePosition(Colors.RED, PieceName.JIANG);
         BoardPosition OpponentJiang = blackJiang;
         if (pieceToMove.getColor().equals(Colors.BLACK)) 
             OpponentJiang = redJiang;
 
-        if (pieceToMove.getName().equals(PieceName.JIANG)) {
-            if (toCol ==  OpponentJiang.Col() && 
-                    numberOfPieces(toCol, toRow, OpponentJiang.Row()) == 0) 
-                return false;
-        } else if (blackJiang.Col() == redJiang.Col() && col == redJiang.Col()) {
-            if (numberOfPieces(col, blackJiang.Row(), redJiang.Row()) == 1 && toCol != col)
-                return false;
+        if (Math.min(blackJiang.Row(), redJiang.Row()) < row && row < Math.max(blackJiang.Row(), redJiang.Row())) {
+            if (pieceToMove.getName().equals(PieceName.JIANG)) {
+                if (toCol ==  OpponentJiang.Col() && 
+                        numberOfPieces(toCol, toRow, OpponentJiang.Row()) == 0) 
+                    return false;
+            } else if (blackJiang.Col() == redJiang.Col() && col == redJiang.Col()) {
+                if (numberOfPieces(col, blackJiang.Row(), redJiang.Row()) == 1 && toCol != col)
+                    return false;
+            }
         }
 
         for (BoardPosition pos : allMoves) {
@@ -278,7 +281,10 @@ public class Game {
                     Integer.parseInt(record.substring(start+1, start+2)), Integer.parseInt(record.substring(start, start+1)));
             BoardPosition to = new BoardPosition(
                     Integer.parseInt(record.substring(start+3, start+4)), Integer.parseInt(record.substring(start+2, start+3)));
-            this.movePiece(from, to);
+            int val = this.movePiece(from, to);
+            if (val < 0) {
+                System.out.println(i + "\t" + record.substring(start, start+4));
+            }
         }
 
         // reset turn
