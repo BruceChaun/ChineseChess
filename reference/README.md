@@ -13,3 +13,7 @@
 * [David Silver](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching.html)
 
 * [Algorithms for Reinforcement Learning \[Csaba Szepesvari\]](https://sites.ualberta.ca/~szepesva/papers/RLAlgsInMDPs.pdf)
+
+* [KnightCap](https://arxiv.org/pdf/cs/9901002v1.pdf)
+
+* [Web Stanford](https://web.stanford.edu/group/pdplab/pdphandbook/handbookch10.html)
