@@ -40,10 +40,10 @@ public class NN {
     private int numPieceInput;
     private int numPositionInput;
     private int numHidden11 = 4;
-    private int numHidden12 = 14;
-    private int numHidden13 = 14;
+    private int numHidden12 = 20;
+    private int numHidden13 = 20;
     private int numHidden1;
-    private int numHidden2 = 6;
+    private int numHidden2 = 8;
     private int numOutput;
     
     // store activated values in the hidden layers
@@ -61,7 +61,7 @@ public class NN {
     private final byte TanH_MODE = 1;
     
     // learning rate
-    private double alpha;
+    private double alpha = 0.1;
     private double[][] globalEta;
     private double[][] pieceEta;
     private double[][] positionEta;
@@ -81,9 +81,7 @@ public class NN {
     private double[][] positionGrad;
     private double[][] hiddenLayerGrad;
     private double[][] outputGrad;
-    
-    // estimated values functions from step 1 to m (end)
-    private double[] value;
+
     private int episodeWindow = 10;
     
     // gradient by eipsode
@@ -312,7 +310,8 @@ public class NN {
     private void initWeights(double[][] weights) {
         for (int i = 0; i < weights.length; i++) {
             for (int j = 0; j < weights[0].length; j++) {
-                weights[i][j] = new Random().nextDouble() * 2 - 1;
+                double rand = new Random().nextDouble() * 2 - 1;
+                weights[i][j] = rand / 5;
             }
         }
     }
@@ -326,6 +325,35 @@ public class NN {
         for (int i = 0; i < len; i++)
             dup[i] = array[i];
         return dup;
+    }
+    
+    /*
+     * check if neural network training converges 
+     */
+    public boolean converge() {
+        final double epsilon = 0.0001;
+        double max = this.absMax(this.globalDelta);
+        max = Math.max(max, this.absMax(this.pieceDelta));
+        max = Math.max(max, this.absMax(this.positionDelta));
+        max = Math.max(max, this.absMax(this.hiddenLayerDelta));
+        max = Math.max(max, this.absMax(this.outputDelta));
+        System.out.println("max delta:\t"+max);
+        return Math.abs(max) < epsilon;
+    }
+    
+    private double absMax(double[][] array) {
+        int n = array.length;
+        int m = array[0].length;
+        
+        double max = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                double abs = Math.abs(array[i][j]);
+                if (max < abs) max = abs;
+            }
+        }
+        
+        return max;
     }
     
     /*
@@ -344,6 +372,7 @@ public class NN {
         double[] hiddenInput2 = transmit(pieceF, this.pieceWeights);
         double[] hiddenInput3 = transmit(positionF, this.positionWeights);
         
+        this.hiddenOutput1.clear();
         this.hiddenOutput1.add(this.copy(hiddenInput1));
         this.hiddenOutput1.add(this.copy(hiddenInput2));
         this.hiddenOutput1.add(this.copy(hiddenInput3));
@@ -451,7 +480,7 @@ public class NN {
      */
     public void backpropagation(int result, String record) {
         int n = record.length() / 4;
-        this.value = new double[n];
+        double[] value = new double[n];
         
         // w[t][i][j]
         this.globalGrad_e = new double[n][this.numGlobalInput + 1][this.numHidden11];
@@ -459,72 +488,65 @@ public class NN {
         this.positionGrad_e = new double[n][this.numPositionInput + 1][this.numHidden13];
         this.hiddenLayerGrad_e = new double[n][this.numHidden1 + 1][this.numHidden2];
         this.outputGrad_e = new double[n][this.numHidden2 + 1][this.numOutput];
-      
-        Game game = new Game();
-        game.initBoard();
-        // first move
-        String move = record.substring(0, 4);
-        BoardPosition from = new BoardPosition(
-                Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
-        BoardPosition to = new BoardPosition(
-                Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
-        game.movePiece(from, to);
-        List<List<Double>> feat = Feature.featureExtractor(game);
-        this.value[0] = this.forward(feat);
-        game.changeTurn();
         
         // lambda array, I don't want to call pow function each iteration
         double[] lambda = new double[this.episodeWindow];
         lambda[0] = 1;
         for (int i = 1; i < lambda.length; i++)
             lambda[i] = lambda[i-1] * TD.lambda;
+      
+        Game game = new Game();
+        game.initBoard();
         
-        // calculate error in each step
         for (int t = 0; t < n; t++) {
-            double tdiff = 0;
-            List<List<Double>> nextFeat = null;
-            
-            if (t < n -1) {
-                move = record.substring((t+1) * 4, (t+2) * 4);
-                from = new BoardPosition(
-                        Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
-                to = new BoardPosition(
-                        Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
-                game.movePiece(from, to);
-                nextFeat = Feature.featureExtractor(game);
-                this.value[t+1] = this.forward(nextFeat);
-                game.changeTurn();
-            }
-            
-            // temporal difference term: V_t+1 - V_t
-            if (t < n-2) {
-                tdiff = this.value[t+1] - this.value[t];
-            } else if (t == n-2) {
-                tdiff = -result - this.value[t];
-            } else if (t == n-1) {
-                tdiff = result - this.value[t];
-            }
+            String move = record.substring(t*4, t*4+4);
+            BoardPosition from = new BoardPosition(
+                    Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
+            BoardPosition to = new BoardPosition(
+                    Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+            game.movePiece(from, to);
+            List<List<Double>> feat = Feature.featureExtractor(game);
+            // calculate value function at time t
+            value[t] = this.forward(feat);
+            game.changeTurn();
             
             // calculate gradient V_t w.r.t. w_ij
-            double p = this.dtanh(this.value[t]);
+            double p = this.dtanh(value[t]);
             this.outputWeightGrad_e(t, p);
             this.hiddenWeightGrad_e(t, p);
             this.globalWeightGrad_e(t, p, this.list2array(feat.get(0)));
             this.pieceWeightGrad_e(t, p, this.list2array(feat.get(1)));
             this.positionWeightGrad_e(t, p, this.list2array(feat.get(2)));
+        }
+        
+        // temporal difference array
+        double[] tdiff = new double[n];
+        for (int t = 0; t < n-1; t++) {
+            tdiff[t] = value[t+1] - value[t];
+        }
+        tdiff[n-1] = result - value[n-1];
+        
+        // calculate error in each step
+        for (int t = 0; t < n; t++) {
+//            double tdiff = 0;
+            
+            // temporal difference term: V_t+1 - V_t
+//            if (t < n-2) {
+//                tdiff = this.value[t+1] - this.value[t];
+//            } else if (t == n-2) {
+//                tdiff = -result - this.value[t];
+//            } else if (t == n-1) {
+//                tdiff = result - this.value[t];
+//            }
             
             // update delta weight arrays
-            int start = Math.max(0, t-this.episodeWindow+1);
-            int end = start + this.episodeWindow - 1;
+            int start = t;//Math.max(0, t-this.episodeWindow+1);
+            int end = Math.min(start + this.episodeWindow - 1, n-1);
             this.updateWeight_e(this.outputGrad_e, tdiff, lambda, start, end, this.outputDelta);
             this.updateWeight_e(this.hiddenLayerGrad_e, tdiff, lambda, start, end, this.hiddenLayerDelta);
             this.updateWeight_e(this.globalGrad_e, tdiff, lambda, start, end, this.globalDelta);
             this.updateWeight_e(this.pieceGrad_e, tdiff, lambda, start, end, this.pieceDelta);
             this.updateWeight_e(this.positionGrad_e, tdiff, lambda, start, end, this.positionDelta);
-            
-            if (t < n-1) {
-                feat = nextFeat;
-            }
         }
         
         // update weight after summing over all the steps
@@ -533,6 +555,8 @@ public class NN {
         this.updateWeight(this.globalWeights, this.globalDelta);
         this.updateWeight(this.pieceWeights, this.pieceDelta);
         this.updateWeight(this.positionWeights, this.positionDelta);
+        
+        game.initBoard(record);
     }
     
     /*
@@ -545,7 +569,7 @@ public class NN {
      * @start and @end give the range of the summation over gradients of several steps
      * @delta is the array stores the accumulated error of w_ij
      */
-    private void updateWeight_e(double[][][] grad, double tdiff, 
+    private void updateWeight_e(double[][][] grad, double[] tdiff, 
             double[] lambda, int start, int end, double[][] delta) {
         int n = delta.length;
         int m = delta[0].length;
@@ -553,9 +577,9 @@ public class NN {
             for (int j = 0; j < m; j++) {
                 double sum = 0;
                 for (int k = start; k <= end; k++) {
-                    sum += lambda[k-start] * grad[k][i][j];
+                    sum += lambda[k-start] * tdiff[k];
                 }
-                delta[i][j] += sum * this.alpha * tdiff;
+                delta[i][j] += sum * this.alpha * grad[start][i][j];
             }
         }
     }
@@ -629,7 +653,7 @@ public class NN {
     
     private void pieceWeightGrad_e(int t, double factor, double[] pieceFeatures) {
         int n = this.pieceGrad_e[0].length;
-        int m = this.pieceGrad_e[0].length;
+        int m = this.pieceGrad_e[0][0].length;
         double[] piece = this.hiddenOutput1.get(1);
         int hidden2len = this.hiddenOutput2.length;
         
@@ -875,10 +899,12 @@ public class NN {
      */
     private double ReLU(double u) {
         return u < 0 ? 0 : u;
+//        return sigmond(u);
     }
     
     private double dReLU(double u) {
         return u < 0 ? 0 : 1;
+//        return dsigmond(u);
     }
     
     /*
@@ -891,5 +917,17 @@ public class NN {
     private double dtanh(double u) {
         double z = tanh(u);
         return 1 - z * z;
+    }
+    
+    /*
+     * sigmond activation and its derivative
+     */
+    private double sigmond(double u) {
+        return 1 / (1 + Math.exp(-u));
+    }
+    
+    private double dsigmond(double u) {
+        double z = sigmond(u);
+        return z * (1 - z);
     }
 }

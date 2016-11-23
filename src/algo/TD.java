@@ -27,7 +27,7 @@ public class TD {
     }
     
     public TD() {
-        this(6);
+        this(10);
     }
     
     /*
@@ -111,5 +111,98 @@ public class TD {
         String move = game.chooseOptMove(nn);
         double error = 0;
         return error;
+    }
+    
+    /*
+     * Use TD to generate error signal and call NN backpropagation method to train the model.
+     */
+    public void TDtrain(NN nn, String record, int result) {
+        int n = record.length() / 4;
+        if (n % 2 == 0)
+            result = -result;
+        
+        // TD lambda discount factor for calculation convenience
+        double[] lambda = new double[this.numStepToSim];
+        lambda[0] = 1;
+        for (int i = 1; i < lambda.length; i++)
+            lambda[i] = lambda[i-1] * this.lambda;
+        
+        List<List<List<Double>>> featureList = this.featureList(record);
+        List<List<Double>> features;
+        
+        for (int i = 0; i < n; i++)
+            System.out.println(nn.forward(featureList.get(i)));
+        
+        // V_n is the actual value -- result, calculate it first
+        features = featureList.get(n-1);
+        double pred = nn.forward(features);
+        nn.backpropagationWithTD(features, result - pred);
+        nn.converge();
+        
+        // the rest of n-1 steps
+        for (int t = n-2; t >= 0; t--) {
+            double error = this.errorSignal(nn, featureList, t, result, lambda);
+            features = featureList.get(t);
+            nn.backpropagationWithTD(features, error);
+        }
+        
+        System.out.println();
+        for (int i = 0; i < n; i++)
+            System.out.println(nn.forward(featureList.get(i)));
+    }
+    
+    /*
+     * error signal \sum_{k=t}^n lambda^{k-t} (V_{k+1} - V_k)
+     * 
+     * parameters:
+     * @nn is the network to compute estimated value function
+     * @featureList is a list of feature vectors of all the chess game positions
+     * @t indicates which step it is
+     * @result is the actual result at the end of the game
+     */
+    private double errorSignal(NN nn, List<List<List<Double>>> featureList, int t, int result, double[] lambda) {
+        double error = 0;
+        int n = featureList.size();
+        int end = Math.min(n, t+this.numStepToSim);
+        for (int k = t; k < end; k++) {
+            double nextVal = result;
+            if (k != n-1) nextVal = nn.forward(featureList.get(k+1));
+            double currentVal = nn.forward(featureList.get(k));
+            error += (nextVal - currentVal) * lambda[k-t];
+        }
+
+        return error;
+    }
+    
+    /*
+     * calculate feature vectors from step 1 to n
+     * 
+     * parameters:
+     * @record is the chess record
+     * 
+     * @return a list of feature vectors with the same format in Feature file
+     */
+    private List<List<List<Double>>> featureList(String record) {
+        int n = record.length() / 4;
+        
+        Game game = new Game();
+        game.initBoard();
+        List<List<List<Double>>> featureList = new ArrayList<List<List<Double>>>();
+        
+        for (int t = 0; t < n; t++) {
+            String move = record.substring(t*4, t*4+4);
+            BoardPosition from = new BoardPosition(
+                    Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
+            BoardPosition to = new BoardPosition(
+                    Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+            game.movePiece(from, to);
+            
+            game.changeTurn();
+            List<List<Double>> feat = Feature.featureExtractor(game);
+            featureList.add(feat);
+            game.changeTurn();
+        }
+        
+        return featureList;
     }
 }
