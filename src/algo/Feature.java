@@ -3,11 +3,14 @@ package algo;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
 import constants.Colors;
 import constants.PieceName;
 import game.BoardPosition;
 import game.Game;
-import pieces.*;
+import pieces.Piece;
 
 /*
  * Feature extraction from the chess board
@@ -45,6 +48,24 @@ public class Feature {
         features.add(positionFeature(game));
 
         return features;
+    }
+    
+    /*
+     * convert list of features into feature array
+     */
+    public static double[] featureArray(List<List<Double>> features) {
+        int featureSize = 0;
+        for (int i = 0; i < features.size(); i++) {
+            featureSize += features.get(i).size();
+        }
+        double[] array = new double[featureSize];
+        int index = 0;
+        for (int i = 0; i < features.size(); i++) {
+            for (Double d : features.get(i)) {
+                array[index++] = d;
+            }
+        }
+        return array;
     }
 
     /*
