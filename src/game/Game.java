@@ -76,10 +76,9 @@ public class Game {
      * record a move
      */
     public void record(String move) {
-        BoardPosition from = new BoardPosition(
-                Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
-        BoardPosition to = new BoardPosition(
-                Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+        BoardPosition[] locations = BoardPosition.fromString(move);
+        BoardPosition from = locations[0];
+        BoardPosition to = locations[1];
         this.recorder.record(from, to);
     }
     
@@ -296,10 +295,9 @@ public class Game {
 
         for (int i = 0; i < numMoves; i++) {
             String move = record.substring(i*4, i*4+4);
-            BoardPosition from = new BoardPosition(
-                    Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
-            BoardPosition to = new BoardPosition(
-                    Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+            BoardPosition[] locations = BoardPosition.fromString(move);
+            BoardPosition from = locations[0];
+            BoardPosition to = locations[1];
             int val = this.movePiece(from, to);
             if (val < 0) {
                 System.out.println(i + "\t" + move);
@@ -350,9 +348,12 @@ public class Game {
         // naive implementation: TD(0)
         for (String m : allMoves) {
             Game g = this.copy();
-            double val = g.movePiece(
-                    new BoardPosition(Integer.parseInt(m.substring(1, 2)), Integer.parseInt(m.substring(0, 1))), 
-                    new BoardPosition(Integer.parseInt(m.substring(3, 4)), Integer.parseInt(m.substring(2, 3))));
+            BoardPosition[] locations = BoardPosition.fromString(m);
+            BoardPosition from = locations[0];
+            BoardPosition to = locations[1];
+            double val = g.movePiece(from ,to);
+//                    new BoardPosition(Integer.parseInt(m.substring(1, 2)), Integer.parseInt(m.substring(0, 1))),
+//                    new BoardPosition(Integer.parseInt(m.substring(3, 4)), Integer.parseInt(m.substring(2, 3))));
             
             if (g.getWinner() != null) {
                 optMove = m;

@@ -23,6 +23,14 @@ public class BoardPosition {
         return this.col + "" + this.row;
     }
 
+    public static BoardPosition[] fromString(String move) {
+        BoardPosition from = new BoardPosition(
+                Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
+        BoardPosition to = new BoardPosition(
+                Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+        return new BoardPosition[]{from ,to};
+    }
+
     /*
      * calculate Manhattan distance from this to that
      */

@@ -22,49 +22,52 @@ import game.Game;
 import java.util.*;
 import constants.Colors;
 
-public class TDtraining(){
-    private int nsteps = 8;
+public class TDtraining{
+    private static int nsteps = 8;
     public static final double gamma = 0.7;
     public static final double lambda = 0.7;
-    private final double alpha = 0.2;
-    private Map<Game, Double> ValueMap = new HashMap<Game, Double>();
+    private static final double alpha = 0.2;
+    private static Map<Game, Double> ValueMap = new HashMap<Game, Double>();
 
-    public TDtraning(){}
-
-    public TDlearn(Neuroph NN, String record){
+    public static Map<Game, Double> TDlearn(Neuroph NN, String record){
         AlphaBeta engine = new AlphaBeta();
 
         Random rand = new Random();
         int numMoves = record.length() / 4;
-        int step = rand.nextInt(numMoves-13) + 5；
+        int step = rand.nextInt(numMoves-13) + 5;
         Game game = new Game();
         game.initBoard(record,step);
 
         boolean gameflag = false;
-        int nstep = 0;
         int reward = 0;
         //如何判断游戏终止
+        gameflag = game.getWinner() != null;
         List<List<Double>> feat = Feature.featureExtractor(game);
         double[] array = Feature.featureArray(feat);
-        double value = neuroph.evaluate(array);
+        double value = NN.evaluate(array);
         ValueMap.put(game.copy(), value);
         while(!gameflag){
             boolean redTurn = game.isRedTurn();
             if(redTurn){
                 //alpha-beta 返回from to
+                String move = engine.getNextMoveIndex(game, nsteps);
+                BoardPosition[] locations = BoardPosition.fromString(move);
+                BoardPosition from = locations[0];
+                BoardPosition to = locations[1];
+
                 game.movePiece(from, to);
-                List<List<Double>> feat = Feature.featureExtractor(game);
-                double[] array = Feature.featureArray(feat);
-                double value = neuroph.evaluate(array);
+                feat = Feature.featureExtractor(game);
+                array = Feature.featureArray(feat);
+                value = NN.evaluate(array);
                 ValueMap.put(game.copy(), value);
             }
             else{
                 //alpha-beta 返回from to
+                String move = engine.getNextMoveIndex(game, nsteps);
+                BoardPosition[] locations = BoardPosition.fromString(move);
+                BoardPosition from = locations[0];
+                BoardPosition to = locations[1];
                 game.movePiece(from, to);
-                List<List<Double>> feat = Feature.featureExtractor(game);
-                double[] array = Feature.featureArray(feat);
-                double value = neuroph.evaluate(array);
-                ValueMap.put(game.copy(), value);
             }
             //判断游戏是否终止，调整gameflag
             if(gameflag){
@@ -79,25 +82,30 @@ public class TDtraining(){
         }
         int size = ValueMap.size();
         List<Double> values = new ArrayList<Double>(ValueMap.values());
-        Set set =  ValueMap.keySet();
-        Iterator keys = set.iterator();
-        for(int i=0;i<size-8;i++){
-            ValueMap.put(keys.next(), (1-alpha)*values.get(i)+Math.pow(gamma,8)*values.get(i+7))
+        Game lastGame = null;
+        int i = 0;
+        for (Game g : ValueMap.keySet()) {
+            if (size - i == 8) {
+                lastGame = g;
+                break;
+            }
+            ValueMap.put(g, (1-alpha)*values.get(i)+Math.pow(gamma,8)*values.get(i+7));
+            i++;
         }
-        ValueMap.put(keys.next(), (1-alpha)*values.get(i)+(1-alpha)*Math.pow(gamma,8)*values.get(i+7)+(1-alpha)*reward)
-        return ValueMap
+        ValueMap.put(lastGame, (1-alpha)*values.get(size-8)+(1-alpha)*Math.pow(gamma,8)*values.get(size-1)+(1-alpha)*reward);
+        return ValueMap;
     }
 
-    public static void main(strings[] *args){
-            path = '../'
-            Neuroph NN = new Neuroph(path);
-            for(int i=0;i <10;i++){
-                // 随机选择一个棋谱
-                Map<Game, Double> Valuegame = new HashMap<Game, Double>();
-                Valuegame = TDtrain(NN,record);
-                //将valuegame中game保存为feature和value
-            }
-            //重新训练NN
+    public static void main(String[] args){
+        String path = "../";
+        String record = "";
+        Neuroph NN = new Neuroph(path);
+        for(int i=0;i <10;i++){
+            // 随机选择一个棋谱
+            Map<Game, Double> Valuegame = TDtraining.TDlearn(NN,record);
+            //将valuegame中game保存为feature和value
+        }
+        //重新训练NN
     }
 
 }

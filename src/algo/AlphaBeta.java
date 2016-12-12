@@ -33,10 +33,12 @@ public class AlphaBeta {
     }
 
     //depth = 2, 4, 6, 8......
-    public int getNextMoveIndex(Game game, int depth) {
+    public String getNextMoveIndex(Game game, int depth) {
         this.bestmove = -1;
-        AlphaBetaPruning(game, Double.MIN_VALUE, Double.MAX_VALUE, depth, "Max", depth);
-        return this.bestmove;
+        Game copy = game.copy();
+        AlphaBetaPruning(copy, Double.MIN_VALUE, Double.MAX_VALUE, depth, "Max", depth);
+        List<String> moves = game.getAllPiecePossibleMoves();
+        return moves.get(this.bestmove);
     }
 
     public Game getTargetGameState(Game game, int depth) {
@@ -51,10 +53,9 @@ public class AlphaBeta {
         for (int i = 0; i < num; i++) {
             List<String> moves = copy2.getAllPiecePossibleMoves();
             String move = moves.get(bestmovelist.get(i));
-            BoardPosition from = new BoardPosition(
-                    Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
-            BoardPosition to = new BoardPosition(
-                    Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+            BoardPosition[] locations = BoardPosition.fromString(move);
+            BoardPosition from = locations[0];
+            BoardPosition to = locations[1];
             copy2.movePiece(from, to);
         }
         return copy2;
@@ -78,10 +79,9 @@ public class AlphaBeta {
                 Game copy = game.copy();
                 // use API in chess game to update game states
                 String move = moves.get(i);
-                BoardPosition from = new BoardPosition(
-                        Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
-                BoardPosition to = new BoardPosition(
-                        Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+                BoardPosition[] locations = BoardPosition.fromString(move);
+                BoardPosition from = locations[0];
+                BoardPosition to = locations[1];
                 copy.movePiece(from, to);
                 ArrayList<Integer> newlist = new ArrayList(movelist);
                 newlist.add(i);
@@ -108,10 +108,9 @@ public class AlphaBeta {
             for (int i = 0; i < num; i++) {
                 Game copy = game.copy();
                 String move = moves.get(i);
-                BoardPosition from = new BoardPosition(
-                        Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
-                BoardPosition to = new BoardPosition(
-                        Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+                BoardPosition[] locations = BoardPosition.fromString(move);
+                BoardPosition from = locations[0];
+                BoardPosition to = locations[1];
                 copy.movePiece(from, to);
                 ArrayList<Integer> newlist = new ArrayList(movelist);
                 newlist.add(i);
@@ -144,10 +143,9 @@ public class AlphaBeta {
             for (int i = 0; i < num; i++) {
                 Game copy = game.copy();
                 String move = moves.get(i);
-                BoardPosition from = new BoardPosition(
-                        Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
-                BoardPosition to = new BoardPosition(
-                        Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+                BoardPosition[] locations = BoardPosition.fromString(move);
+                BoardPosition from = locations[0];
+                BoardPosition to = locations[1];
                 copy.movePiece(from, to);
                 double value = AlphaBetaPruning(copy, alpha, beta, depth - 1, "Min", realdepth);
                 if (value > alpha) {

@@ -226,10 +226,9 @@ public class Neuroph {
         game.initBoard();
         for (int t = 0; t < n; t++) {
             String move = record.substring(t*4, t*4+4);
-            BoardPosition from = new BoardPosition(
-                    Integer.parseInt(move.substring(1, 2)), Integer.parseInt(move.substring(0, 1)));
-            BoardPosition to = new BoardPosition(
-                    Integer.parseInt(move.substring(3, 4)), Integer.parseInt(move.substring(2, 3)));
+            BoardPosition[] locations = BoardPosition.fromString(move);
+            BoardPosition from = locations[0];
+            BoardPosition to = locations[1];
             game.movePiece(from, to);
 
             // red player only
