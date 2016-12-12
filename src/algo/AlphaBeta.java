@@ -33,10 +33,12 @@ public class AlphaBeta {
     }
 
     //depth = 2, 4, 6, 8......
-    public int getNextMoveIndex(Game game, int depth) {
+    public String getNextMoveIndex(Game game, int depth) {
         this.bestmove = -1;
-        AlphaBetaPruning(game, Double.MIN_VALUE, Double.MAX_VALUE, depth, "Max", depth);
-        return this.bestmove;
+        Game copy = game.copy();
+        AlphaBetaPruning(copy, Double.MIN_VALUE, Double.MAX_VALUE, depth, "Max", depth);
+        List<String> moves = game.getAllPiecePossibleMoves();
+        return moves.get(this.bestmove);
     }
 
     public Game getTargetGameState(Game game, int depth) {
