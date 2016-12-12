@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 import algo.*;
-import game.Game;
+import game.*;
 import util.FileHandler;
 
 public class Test {
@@ -13,9 +13,9 @@ public class Test {
     private void run(String[] args) {
 //        testFeatureExtraction();
 //        testNegative();
-//        testNN();
-          testMCTS();
-        //testSim();
+        testNN();
+//        testMCTS();
+//        testSim();
     }
 
     private void testSim() {
@@ -122,11 +122,23 @@ public class Test {
         }
         int[] n1 = {1,1,1};
         int n2 = 2;
-        nn.init(features, n1, n2);
-        for (int i = 0; i < 10; i++) {
-            System.out.println("output\t" + nn.forward(features));
-            nn.backpropagation(features, -1);
+        
+        Game game = new Game();
+        game.initBoard();
+        Game g = game.copy();
+        g.movePiece(new BoardPosition(9, 4), new BoardPosition(8, 4));
+        List<List<Double>> f = Feature.featureExtractor(g);
+        features = Feature.featureExtractor(game);
+        nn.init(features);
+//        nn.init(features, n1, n2);
+        for (int i = 0; i < 100; i++) {
+            System.out.println(nn.forward(features) + "\t" + nn.forward(f));
+            nn.backpropagation(features, 0);
+            nn.backpropagation(f, -1);
+            nn.converge();
         }
+        
+        System.out.println("final\t"+nn.forward(features) + "\t" + nn.forward(f));
     }
     
     /*
