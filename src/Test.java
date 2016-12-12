@@ -14,8 +14,8 @@ public class Test {
 //        testFeatureExtraction();
 //        testNegative();
 //        testNN();
-//        testMCTS();
-        testSim();
+          testMCTS();
+        //testSim();
     }
 
     private void testSim() {
