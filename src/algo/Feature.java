@@ -3,9 +3,6 @@ package algo;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-
 import constants.Colors;
 import constants.PieceName;
 import game.BoardPosition;
